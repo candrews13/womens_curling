@@ -31,6 +31,28 @@ from shots
 group by team;
 
 
+
+--- Adding Columns to the shots table for player positions and who has hammer
+alter table shots
+add column position varchar(10),
+add column has_hammer boolean;
+
+update shots
+set position = case -- identifying player's position on a team based on which rocks they're throwing in the end
+                    when end_shot between 1 and 4 then 'lead'
+                    when end_shot between 5 and 8 then 'second'
+                    when end_shot between 9 and 12 then 'vice'
+                    when end_shot between 13 and 16 then 'skip'
+                    else null 
+                end;
+
+update shots
+set has_hammer = case -- team with even end_shot numbers would have hammer (last rock)
+                    when end_shot % 2 = 0 then true
+                    else false 
+                end;
+
+
 -- examining shot types
 select task, count(task)
 from shots
@@ -91,38 +113,30 @@ order by ga.game_id
 
 
 -- looking at the average shot accuracy for each team in each game
-WITH ShotsAggregated AS (
-    SELECT 
-        s.event_id, 
-        s.game_id, 
-        s.team AS team_name,
-        AVG(s.points) AS avg_points
-    FROM 
-        shots s
-    GROUP BY 
-        s.event_id, 
-        s.game_id, 
-        s.team
-)
-SELECT 
-    g.event_id, 
-    g.game_id, 
+with shotsaggregated as
+	(select s.event_id,
+			s.game_id,
+			s.team as team_name,
+			avg(s.points) as avg_points
+	 from shots s
+	 group by s.event_id,
+			s.game_id,
+			s.team
+	)
+select g.event_id,
+	g.game_id,
 	g.team1_score as team1_finalscore,
 	g.team2_score as team2_finalscore,
-    g.team1 AS team1_name,
-    g.team2 AS team2_name,
-    sa1.avg_points AS team1_avg_points,
-    sa2.avg_points AS team2_avg_points
-FROM 
-    games g
-LEFT JOIN 
-    ShotsAggregated sa1 ON g.event_id = sa1.event_id AND g.game_id = sa1.game_id AND g.team1 = sa1.team_name
-LEFT JOIN 
-    ShotsAggregated sa2 ON g.event_id = sa2.event_id AND g.game_id = sa2.game_id AND g.team2 = sa2.team_name
-ORDER BY 
-    g.event_id, 
-    g.game_id;
-
+	g.team1 as team1_name,
+	g.team2 as team2_name,
+	sa1.avg_points as team1_avg_points,
+	sa2.avg_points as team2_avg_points
+from games g
+left join shotsaggregated sa1 
+	on g.event_id = sa1.event_id and g.game_id = sa1.game_id and g.team1 = sa1.team_name
+left join shotsaggregated sa2 
+	on g.event_id = sa2.event_id and g.game_id = sa2.game_id and g.team2 = sa2.team_name
+order by g.event_id, g.game_id;
 
 
 
@@ -140,27 +154,6 @@ join events as ev on ev.event_id = ga.event_id
 group by ev.year, ga.event_id, s.team
 order by ev.year, ga.event_id
 
-
-
---- Adding Columns to the shots table for player positions and who has hammer
-ALTER TABLE shots
-ADD COLUMN position VARCHAR(10),
-ADD COLUMN has_hammer BOOLEAN;
-
-UPDATE shots
-SET position = CASE 
-                    WHEN end_shot BETWEEN 1 AND 4 THEN 'lead'
-                    WHEN end_shot BETWEEN 5 AND 8 THEN 'second'
-                    WHEN end_shot BETWEEN 9 AND 12 THEN 'vice'
-                    WHEN end_shot BETWEEN 13 AND 16 THEN 'skip'
-                    ELSE NULL 
-                END;
-
-UPDATE shots
-SET has_hammer = CASE 
-                    WHEN end_shot % 2 = 0 THEN TRUE
-                    ELSE FALSE 
-                END;
 
 
 -- average accuracy of individual players
