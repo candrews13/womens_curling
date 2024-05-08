@@ -70,7 +70,7 @@ order by team, endscores.end,
     end
 	
 
-
+-- Team Analytics
 -- points scored for and against by each team
 -- average points scored for and against in an event
 select 
@@ -93,7 +93,7 @@ select
     team_name,
     avg(points_scored) as avg_points_scored_per_game,
 	count(*) as games_played
-from (
+from ( --subquery to list team names in a single column with their game score
     select 
         case 
             when es.team = ga.team1 then ga.team1_score
@@ -110,9 +110,9 @@ from (
 	) as subquery
 group by team_name
 order by avg_points_scored_per_game desc;
-	
 
--- looking at scoring with and without hammer (hammer possession based on shots data)
+
+-- looking at scoring (per end) with and without hammer (hammer possession from shots table)
 select 
     e.team,
     avg(case when s.has_hammer then e.score else null end) as avg_score_with_hammer,
@@ -123,16 +123,9 @@ join shots as s
 group by e.team;
 	
 
-select es.team, es.game_id, es.end, es.score, es.opp_score, sh.has_hammer
-from endscores as es
-join shots as sh
-	 on es.game_id = sh.game_id and es.end = sh.end and es.team = sh.team
-group by es.team, es.game_id, es.end, sh.has_hammer, es.score, es.opp_score
-order by es.team, es.game_id, es.end;
-
-
+---- Team Statistics
 ---- analyzing ends with hammer
--- calculating hammer efficiency for each team
+-- calculating Hammer Efficiency for each team
 select 
     team,
     count(*) as total_hammer_ends,
@@ -149,7 +142,7 @@ where has_hammer = true and (es.score > 0 or es.opp_score > 0) -- ends where tea
 group by team
 order by team;
 	
--- calculating steal defense
+-- calculating Steal Defense
 select 
     es.team,
     count(*) as total_hammer_ends,
@@ -163,14 +156,7 @@ group by es.team
 order by es.team;
 -- lower is better for this one
 
--- now lets combine the two and calculate hammer factor
-/* in	general,	how	a	team	performs	with	hammer	provides	a	clearer	measure	of	relative	performance	
-than	its	performance	without	hammer.		
-teams	often	have	varied strategies	that	can	result	in	similar	
-winning	percentages	or	rankings	despite	different ranges	of	he	or	sd.		
-a	highly	ranked	team	with	a	lower	he	may	have	a	lower	sd,	indicating	they	put	less	rocks	in	play	and	take	fewer	chances.
-by	subtracting	these	results,	we	can	produce	a	hammer	factor	which	provides another	indicator	of	
-a	team’s	level	of	play  */ 
+-- now lets combine the two and calculate Hammer Factor
 with hammerefficiency as (
 		select 
 			es.team,
@@ -207,9 +193,8 @@ order by hammer_factor desc
 ;
 
 
-
 ---- analyzing ends without hammer
--- calculating force efficiency (limiting your opponent's scoring)
+-- calculating Force Efficiency (limiting your opponent's scoring)
     select 
         es.team,
         count(*) filter (where not sh.has_hammer and es.opp_score > 0) as total_ends_without_hammer_opponent_scores,
@@ -222,10 +207,8 @@ order by hammer_factor desc
     group by es.team
 		
 
--- calculating steal efficiency
-/* 	the	percentage	of	ends	a	team	steals	one	or	more	points.	
-it's	calculated	by	dividing	ends	stolen	without	hammer	by	the	total	ends	played	without	hammer,
-blank	ends	are	included */
+-- calculating Steal Efficiency
+-- the percentage of ends a	team steals	one	or more points.	
 select es.team,
     round(sum(case when es.score > 0 then 1.0 else 0 end) / count(*), 4) as steal_efficiency
 from endscores as es
@@ -235,3 +218,145 @@ where not sh.has_hammer
 group by es.team
 order by es.team;
 
+
+-- putting hammer and without hammer stats together into one table
+with hammerefficiency as (
+    select 
+        es.team,
+        count(*) as total_hammer_ends,
+        sum(case when es.score >= 2 then 1.0 else 0 end) as ends_scoring_2_or_more,
+        round((sum(case when es.score >= 2 then 1.0 else 0 end) / count(*)), 4) as hammer_efficiency
+    from endscores as es
+    join shots as sh 
+        on es.game_id = sh.game_id and es.end = sh.end and es.team = sh.team
+    where sh.has_hammer = true and (es.score > 0 or es.opp_score > 0)
+    group by es.team
+),
+stealdefense as (
+    select 
+        es.team,
+        count(*) as total_hammer_ends,
+        sum(case when es.opp_score > 0 then 1.0 else 0 end) as ends_stolen_against,
+        round((sum(case when es.opp_score > 0 then 1.0 else 0 end) / count(*)), 4) as steal_defense
+    from endscores as es
+    join shots as sh 
+        on es.game_id = sh.game_id and es.end = sh.end and es.team = sh.team
+    where sh.has_hammer = true
+    group by es.team
+),
+forceefficiency as (
+    select 
+        es.team,
+        count(*) filter (where not sh.has_hammer and es.opp_score > 0) as total_ends_without_hammer_opponent_scores,
+        sum(case when es.opp_score = 1 and not sh.has_hammer then 1.0 else 0 end) as ends_opponent_scored_1,
+        case 
+            when count(*) filter (where not sh.has_hammer and es.opp_score > 0) = 0 then null 
+            else (sum(case when es.opp_score = 1 and not sh.has_hammer then 1.0 else 0 end) / count(*) filter (where not sh.has_hammer and es.opp_score > 0)) 
+        end as force_efficiency
+    from endscores as es
+    join shots as sh 
+        on es.game_id = sh.game_id and es.end = sh.end and es.team = sh.team
+    where not sh.has_hammer
+    group by es.team
+),
+stealefficiency as (
+    select 
+        es.team,
+        round(sum(case when es.score > 0 then 1.0 else 0 end) / count(*), 4) as steal_efficiency
+    from endscores as es
+    join shots as sh 
+        on es.game_id = sh.game_id and es.end = sh.end and es.team = sh.team
+    where not sh.has_hammer
+    group by es.team
+)
+select 
+    he.team,
+    he.hammer_efficiency,
+    sd.steal_defense,
+    (he.hammer_efficiency - sd.steal_defense) as hammer_factor,
+    fe.force_efficiency,
+    se.steal_efficiency
+from hammerefficiency as he
+join stealdefense as sd on he.team = sd.team
+join forceefficiency as fe on he.team = fe.team
+join stealefficiency as se on he.team = se.team
+	
+	
+-- adding in year as a factor
+with hammerefficiency as (
+    select 
+        es.team,
+		ev.year,
+        count(*) as total_hammer_ends,
+        sum(case when es.score >= 2 then 1.0 else 0 end) as ends_scoring_2_or_more,
+        round((sum(case when es.score >= 2 then 1.0 else 0 end) / count(*)), 4) as hammer_efficiency
+    from endscores as es
+    join shots as sh 
+        on es.game_id = sh.game_id and es.end = sh.end and es.team = sh.team
+	join events as ev
+		on es.event_id = ev.event_id
+    where sh.has_hammer = true and (es.score > 0 or es.opp_score > 0)
+    group by es.team
+),
+stealdefense as (
+    select 
+        es.team,
+		ev.year,
+        count(*) as total_hammer_ends,
+        sum(case when es.opp_score > 0 then 1.0 else 0 end) as ends_stolen_against,
+        round((sum(case when es.opp_score > 0 then 1.0 else 0 end) / count(*)), 4) as steal_defense
+    from endscores as es
+    join shots as sh 
+        on es.game_id = sh.game_id and es.end = sh.end and es.team = sh.team
+	join events as ev
+		on es.event_id = ev.event_id
+    where sh.has_hammer = true
+    group by es.team, ev.year
+),
+forceefficiency as (
+    select 
+        es.team,
+        ev.year,
+        count(*) filter (where not sh.has_hammer and es.opp_score > 0) as total_ends_without_hammer_opponent_scores,
+        sum(case when es.opp_score = 1 and not sh.has_hammer then 1 else 0 end) as ends_opponent_scored_1,
+        case 
+            when count(*) filter (where not sh.has_hammer and es.opp_score > 0) = 0 then null 
+            else (sum(case when es.opp_score = 1 and not sh.has_hammer then 1 else 0 end) * 100.0 / count(*) filter (where not sh.has_hammer and es.opp_score > 0)) 
+        end as force_efficiency
+    from endscores as es
+    join shots as sh 
+        on es.game_id = sh.game_id and es.end = sh.end and es.team = sh.team
+    join events as ev 
+        on es.event_id = ev.event_id
+    where not sh.has_hammer
+    group by es.team, ev.year
+),
+stealefficiency as (
+    select 
+        es.team,
+        ev.year,
+        round(sum(case when es.score > 0 then 1.0 else 0 end) / count(*), 4) as steal_efficiency
+    from endscores as es
+    join shots as sh 
+        on es.game_id = sh.game_id and es.end = sh.end and es.team = sh.team
+    join events as ev 
+        on es.event_id = ev.event_id
+    where not sh.has_hammer
+    group by es.team, ev.year
+)
+select 
+    he.team,
+    he.year,
+    he.hammer_efficiency,
+    sd.steal_defense,
+    (he.hammer_efficiency - sd.steal_defense) as hammer_factor,
+    fe.force_efficiency,
+    se.steal_efficiency
+from hammerefficiency as he
+join stealdefense as sd 
+	on he.team = sd.team and he.year = sd.year
+join forceefficiency as fe 
+	on he.team = fe.team and he.year = fe.year
+join stealefficiency as se 
+	on he.team = se.team and he.year = se.year
+order by he.year, he.team;
