@@ -11,7 +11,7 @@ Events table <br>
 |--------------------|-------------------------------------------------------|------------------|-----------------------------------------------------|
 |     event_id       |     Unique event identifier                           |     Integer      |                                                     |
 |     event_name     |     Name of event/tournament                          |     Text         |                                                     |
-|     Year           |                                                       |                  |                                                     |
+|     Year           |     Calendar year of event                            |                  |                                                     |
 |     Ends           |     Number of ends expected to be played each game    |     Integer      |                                                     |
 |     Gender         |     Gender of players                                 |     Text         |     Women or men. Scoped to be women only events    |
 |     Junior         |     Junior event or not                               |     integer      |     Binary: 1 = junior event, 0 = not junior        |
