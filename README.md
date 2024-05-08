@@ -3,8 +3,8 @@ Data analytics project on womens curling games and athletes.
 
 Data provided by https://doubletakeout.com/ from Jan 2024.
 
-**Data Dictionary**
-Events table
+**Data Dictionary** <br>
+Events table <br>
 •	6 columns, 107 rows
 •	Years 2002 – 2024 (1 event in 2024)
 |     Column name    |     Description                                       |     Data type    |     Notes                                           |
@@ -17,7 +17,7 @@ Events table
 |     Junior         |     Junior event or not                               |     integer      |     Binary: 1 = junior event, 0 = not junior        |
 
 
-Endscores table
+Endscores table <br>
 •	8 columns, 79239 rows
 |     Column name    |     Description                                  |     Data type    |     Notes    |
 |--------------------|--------------------------------------------------|------------------|--------------|
@@ -31,7 +31,7 @@ Endscores table
 |     Opp_total      |     Opponent score at the start of that end      |     Integer      |              |
 
 
-Games table
+Games table <br>
 •	7 columns, 4129 rows
 |     Column name    |     Description                                |     Data type    |     Notes                                               |
 |--------------------|------------------------------------------------|------------------|---------------------------------------------------------|
@@ -45,7 +45,7 @@ Games table
 |     Opp_total      |     Opponent score at the start of that end    |     Integer      |                                                         |
 
 
-Shots table
+Shots table <br>
 • 9 columns, 592k+ rows
 |     Column name    |     Description                                             |     Data type    |     Notes                                                                              |
 |--------------------|-------------------------------------------------------------|------------------|----------------------------------------------------------------------------------------|
