@@ -60,7 +60,7 @@ Shots table <br>
 |     Points         |     Numerical score of shot accuracy (closeness to task)    |     integer      |     0-4 points awarded.     0 = completely unsuccessful     4 = shot made as called    |
 
 
-Understanding shot task names:
+Understanding shot task names: <br>
 •	Clearing <br>
 •	Double – a type of takeout shot where two stones are removed <br>
 •	Draw – a shot that typically ends up in the house without touching other stones <br>
