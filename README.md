@@ -61,16 +61,16 @@ Shots table <br>
 
 
 Understanding shot task names:
-•	Clearing
-•	Double – a type of takeout shot where two stones are removed 
-•	Draw – a shot that typically ends up in the house without touching other stones
-•	Freeze – a precise draw shot where the delivered stone come to rest against an existing stationary stone, making a takeout harder
-•	Front - a rock thrown outside the house preemptively, not intending to cover anything already in the house.
-•	Guard – typically placed between the hog line and the front of the house; A rock that is place in front of another to protect it from being knocked out, or with the intent to later curl another rock around and behind it.
-•	Hit-Roll – a rock that takes out the rock it hits then slides/rolls into a designated area
-•	Promotion - Another name for a raise; usually means to raise a guard into the house and make it a potential counter
-•	Raise – a shot where the delivered stone bumps the stone it hits forward
-•	Take-out - A rock that hits another rock and removes it from play
-•	Through – a shot that passes through the house and out of play, likely without contacting other stones
-•	Wick - A shot where the played stone touches a stationary stone just enough that the played stone changes direction
+•	Clearing <br>
+•	Double – a type of takeout shot where two stones are removed <br>
+•	Draw – a shot that typically ends up in the house without touching other stones <br>
+•	Freeze – a precise draw shot where the delivered stone come to rest against an existing stationary stone, making a takeout harder <br>
+•	Front - a rock thrown outside the house preemptively, not intending to cover anything already in the house. <br>
+•	Guard – typically placed between the hog line and the front of the house; A rock that is place in front of another to protect it from being knocked out, or with the intent to later curl another rock around and behind it. <br>
+•	Hit-Roll – a rock that takes out the rock it hits then slides/rolls into a designated area <br>
+•	Promotion - Another name for a raise; usually means to raise a guard into the house and make it a potential counter <br>
+•	Raise – a shot where the delivered stone bumps the stone it hits forward <br>
+•	Take-out - A rock that hits another rock and removes it from play <br>
+•	Through – a shot that passes through the house and out of play, likely without contacting other stones <br>
+•	Wick - A shot where the played stone touches a stationary stone just enough that the played stone changes direction <br>
 
